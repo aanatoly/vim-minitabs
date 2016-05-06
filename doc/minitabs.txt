@@ -1,0 +1,16 @@
+*minitabs.txt*   Vim plugin for autodetecting indentation
+
+
+Author:   Anatoly Asviyan <aanatoly@gmail.com>
+Licence:  GPLv2
+
+INTRODUCTION                                    *minitabs*
+
+This plugin tries to guess existing indentation and set tab options
+accordinly. Otherwise existing setting are used.
+
+
+ABOUT                                           *minitabs-about*
+
+https://github.com/aanatoly/vim-minitabs.git
+
