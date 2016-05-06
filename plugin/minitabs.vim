@@ -227,6 +227,7 @@ function! s:FixTabs()
     setlocal expandtab
     let &l:shiftwidth = 2
     let &l:tabstop = 2
+    let &l:softtabstop = 2
     set list
   endif
 
@@ -236,13 +237,13 @@ endfunction
 command! FixTabs call <SID>FixTabs()
 
 
-function! s:GetTabStatus()
-  return "ts " . &l:ts . ", sw " . &l:sw . ", et " . &l:et . ", sts " . &l:sts
+function! GetTabStatus()
+  return "ts " . &l:ts . " sw " . &l:sw . " et " . &l:et . " sts " . &l:sts
 endfunction
 
 
 function! s:ShowTabs()
-  echo s:GetTabStatus()
+  echo GetTabStatus()
 endfunction
 command! ShowTabs call <SID>ShowTabs()
 
