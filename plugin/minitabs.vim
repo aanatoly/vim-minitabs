@@ -20,6 +20,7 @@ function! s:adjust_tabs() abort
   let backtick = 0
   let minindent = 8
 
+  let g:xx_adj = 'none'
   for line in lines
 
     if line =~# '^\s*$'
@@ -83,11 +84,13 @@ function! s:adjust_tabs() abort
   endfor
 
   if heuristics.spaces > heuristics.hard
+    let g:xx_adj = 'spaces'
     setlocal expandtab
     let &l:shiftwidth = minindent
     let &l:tabstop = minindent
     set list
-  elseif
+  else
+    let g:xx_adj = 'tabs'
     setlocal noexpandtab
   endif
 
