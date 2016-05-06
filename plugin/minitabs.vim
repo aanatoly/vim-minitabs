@@ -218,10 +218,14 @@ function! s:FixTabs()
   let g:minitabs_adj = type
   if type == 'tabs'
     setlocal noexpandtab
+    let &l:shiftwidth = 4
+    let &l:tabstop = 4
+    let &l:softtabstop = 4
   elseif type == 'spaces'
     setlocal expandtab
     let &l:shiftwidth = s:minindent
     let &l:tabstop = s:minindent
+    let &l:softtabstop = s:minindent
     set list
   elseif type == 'text'
     setlocal expandtab
