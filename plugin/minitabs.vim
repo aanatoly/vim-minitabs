@@ -252,6 +252,50 @@ command! -range=% SimplifyScript call <SID>SimplifyScript(<line1>,<line2>)
 " main
 """"""""""""""""""""""""""""""""""""""""
 
+let s:styles = {
+\  "python": {
+\   "olcs": ['#'],
+\   "mlss": [['"""', '"""'], ["'''", "'''"]],
+\  },
+\  "sh": {
+\   "olcs": ['#'],
+\   "mlss": [['<<EOF$', '^EOF$']],
+\  },
+\  "script": {
+\   "olcs": ['#'],
+\   "mlss": [],
+\  },
+\  "c": {
+\   "olcs": ['\/\/'],
+\   "mlss": [['\/\*', '\*\/']]
+\  },
+\  "tabs:4": {
+\     "ind": ['tabs', 4],
+\  },
+\  "spaces:2": {
+\     "ind": ['spaces', 2],
+\  },
+\  "default": {
+\     "ind": ['spaces', 4],
+\  },
+\}
+
+
+let s:mapping = {
+\   "python":   "python",
+\   "sh":       "sh",
+\   "ruby":     "script",
+\   "perl":     "script",
+\   "c":        "c",
+\   "cpp":      "c",
+\   "java":     "c",
+\   "make":     "tabs:4",
+\   "markdown": "spaces:2",
+\   "text":     "spaces:2",
+\   "vim":      "spaces:2",
+\}
+
+
 function! s:GuessIndent()
   if &modifiable == 0
     return
@@ -259,16 +303,16 @@ function! s:GuessIndent()
 
   let l:save_cursor = getpos(".")
 
-  if index(['make'], &filetype) > -1
-    let ind = ['tabs', 4]
-  elseif index(['markdown', 'text', 'vim'], &filetype) > -1
-    let ind = ['spaces', 2]
-  elseif index(['python'], &filetype) > -1
+  let style_name = get(s:mapping, &filetype, "default")
+  " no default value here - if smth went wrong we should
+  " show the error
+  let style = get(s:styles, style_name)
+  if has_key(style, 'ind')
+    let ind = style['ind']
+  elseif has_key(style, 'olcs')
     execute "normal! gg/^\\(\\(\s*[#\\n]\\)\@!.\\)*$"
     let l:lno = line(".")
-    let l:olcs = ['#']
-    let l:mlss = [['"""', '"""'], ["'''", "'''"]]
-    let lines = s:SimplifyText(l:lno, l:lno + 128, l:olcs, l:mlss)
+    let lines = s:SimplifyText(l:lno, l:lno + 128, style['olcs'], style['mlss'])
     let ind = s:CalcIndType(lines)
   else
     let ind = ['none', 0]
@@ -282,6 +326,8 @@ function! s:GuessIndent()
   endif
   let g:minitabs_adj = "" . ind[0] . ":" . ind[1]
 
+  " echo "ft " . &filetype . ", " . style_name . ", " . g:minitabs_adj
+
   if ind[0] == 'tabs'
     setlocal noexpandtab
     let &l:shiftwidth = ind[1]
@@ -293,6 +339,8 @@ function! s:GuessIndent()
     let &l:tabstop = ind[1]
     let &l:softtabstop = ind[1]
     set list
+  else
+    "BUG: should not be here
   endif
 
   call setpos('.', l:save_cursor)
