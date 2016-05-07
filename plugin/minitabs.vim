@@ -11,7 +11,7 @@ let s:keepcpo = &cpo
 set cpo&vim
 
 """"""""""""""""""""""""""""""""""""""""
-" main
+" simplify script
 """"""""""""""""""""""""""""""""""""""""
 
 let g:minitabs_adj = 'none'
@@ -155,101 +155,7 @@ endfunction
 
 
 """"""""""""""""""""""""""""""""""""""""
-" simplify scripts
-""""""""""""""""""""""""""""""""""""""""
-
-" s:find_mls_delim - find left-most triple quote delimeter
-function! s:find_mls_delim(line, mlss)
-  let l:sq_mls_delim = "'''"    " single quote mls delimeter
-  let l:sq_pos = match(a:line, l:sq_mls_delim)
-  let l:dq_mls_delim = '"""'    " double quote mls delimeter
-  let l:dq_pos = match(a:line, l:dq_mls_delim)
-
-  if l:sq_pos == -1 && l:dq_pos == -1
-    return []
-  endif
-
-  if l:sq_pos != -1 && l:dq_pos != -1
-    let l:rc = l:dq_pos < l:sq_pos ? l:dq_mls_delim : l:sq_mls_delim
-  elseif l:dq_pos != -1
-    let l:rc = l:dq_mls_delim
-  else
-    let l:rc = l:sq_mls_delim
-  endif
-  return [l:rc, l:rc]
-endfunction
-
-
-" s:SimplifyScript - simplify script-like buffers
-" Rules are:
-"  * comment is one-liner starting with '#'
-"  * drop comment only line
-"  * drop empty lines
-"  * squash multiline block into single line
-"    |  some long line \
-"    |     in bash with a \    ==> some long line in bash with a lot of args
-"    |     lot of args
-"  * squash multi-line strings into single line
-"    |  a = ''' ffff
-"    |     ggggg                ==> a = '''ffff ggggg eeeee'''' ==> a = 'dupa'
-"    |    eeeee"
-function! s:SimplifyScript(line1,line2)
-  let lines = getline(a:line1,a:line2)
-  let i = 0
-  let l:mls = 0   "multi line string, ''' ...''' or """ ... """
-  let l:sq_mls_delim = "'''"    " single quote mls delimeter
-  let l:dq_mls_delim = '"""'    " double quote mls delimeter
-  let l:cur_mls_delim = ''      " current mls delimeter
-
-  while i < len(lines)
-    let lines[i] = lines[i]
-
-    if lines[i] =~# '^\s*$'
-      unlet lines[i]
-      continue
-    endif
-
-     if lines[i] =~# '^\s*#.*$'
-      unlet lines[i]
-      continue
-    endif
-
-    if lines[i] =~# '\\$'
-      if i + 1 < len(lines)
-        " let lines[i] = lines[i] .'  ' . get(lines, i + 1)
-        let lines[i] = lines[i] .'  ' . substitute(lines[i + 1], '^\s*', '', '')
-        unlet lines[i + 1]
-      endif
-      continue
-    endif
-
-    let delim = s:find_mls_delim(lines[i])
-    if delim != ''
-      while i < len(lines)
-        let nline = substitute(lines[i], delim . '\_.\{-}' . delim, '"dupa"', '')
-        if nline == lines[i]
-          let lines[i] = lines[i] . get(lines, i + 1)
-          unlet lines[i + 1]
-          continue
-        endif
-
-        let lines[i] = nline
-        break
-      endwhile
-      continue
-    endif
-
-    let i = i + 1
-  endwhile
-
-  return lines
-endfunction
-
-
-command! -range=% SimplifyScript call <SID>SimplifyScript(<line1>,<line2>)
-
-""""""""""""""""""""""""""""""""""""""""
-" main
+" simplify script
 """"""""""""""""""""""""""""""""""""""""
 
 let s:styles = {
