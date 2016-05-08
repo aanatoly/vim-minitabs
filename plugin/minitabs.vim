@@ -62,16 +62,18 @@ function! s:CalcIndType(lines) abort
 endfunction
 
 
-" s:FindDelim - find left-most triple quote delimeter
+" s:FindDelim - find left-most MLS delimeter
+" line   - line to examine
+" mlss   - list of opening and closing MLSs (multi-line string)
 function! s:FindDelim(line, mlss)
   let l:stack = []
 
-  for i in len(a:mlss)
-    let l:pos = match(a:line, a:mlss[i][0])
+  for d in a:mlss
+    let l:pos = match(a:line, d[0])
     if l:pos == -1
       continue
     endif
-    l:stack += [l:pos, a:mlss[i]]
+    let l:stack += [[l:pos, d]]
   endfor
   call sort(l:stack)
 
@@ -79,7 +81,8 @@ function! s:FindDelim(line, mlss)
     return []
   endif
 
-  return l:stack[1]
+  " call append("$", ["# final delim: pos " . l:stack[0][0] . ", val " . l:stack[0][1][0]])
+  return l:stack[0][1]
 endfunction
 
 
@@ -98,10 +101,6 @@ endfunction
 function! s:SimplifyText(line1,line2, olcs, mlss)
   let lines = getline(a:line1,a:line2)
   let i = 0
-  let l:mls = 0   "multi line string, ''' ...''' or """ ... """
-  let l:sq_mls_delim = "'''"    " single quote mls delimeter
-  let l:dq_mls_delim = '"""'    " double quote mls delimeter
-  let l:cur_mls_delim = ''      " current mls delimeter
 
   while i < len(lines)
     let lines[i] = lines[i]
@@ -131,7 +130,7 @@ function! s:SimplifyText(line1,line2, olcs, mlss)
     endif
 
     " squash multi line strings
-    let delim = s:find_mls_delim(lines[i], a:mlss)
+    let delim = s:FindDelim(lines[i], a:mlss)
     if delim != []
       while i < len(lines)
         let nline = substitute(lines[i], delim[0] . '\_.\{-}' . delim[1], '"dupa"', '')
@@ -231,8 +230,6 @@ function! s:GuessIndent()
     let ind[1] = 2
   endif
   let g:minitabs_adj = "" . ind[0] . ":" . ind[1]
-
-  " echo "ft " . &filetype . ", " . style_name . ", " . g:minitabs_adj
 
   if ind[0] == 'tabs'
     setlocal noexpandtab
