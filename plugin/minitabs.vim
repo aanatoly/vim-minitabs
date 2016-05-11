@@ -132,18 +132,27 @@ function! s:SimplifyText(line1,line2, olcs, mlss)
     " squash multi line strings
     let delim = s:FindDelim(lines[i], a:mlss)
     if delim != []
-      while i < len(lines)
-        let nline = substitute(lines[i], delim[0] . '\_.\{-}' . delim[1], '"dupa"', '')
-        if nline == lines[i]
-          let lines[i] = lines[i] . get(lines, i + 1)
-          unlet lines[i + 1]
-          continue
-        endif
+      " Below code must either increase i or change current line
 
+      let nline = substitute(lines[i], delim[0] . '\_.\{-}' . delim[1], '"dupa"', '')
+
+      " closing delim was found on the same line. we replace that chunk
+      " by single word text and restart parser
+      if nline != lines[i]
         let lines[i] = nline
-        break
-      endwhile
-      continue
+        continue
+      endif
+
+      " delim was not found. So if we get more lines, lets squash next line
+      " into the current one, and see if we has closing delim now
+      if i + 1 < len(lines)
+        let lines[i] = lines[i] . get(lines, i + 1)
+        unlet lines[i + 1]
+        continue
+      endif
+
+      " no delim, no next line - it means unclosed string spans to the end
+      " of a file - nothing we can do
     endif
 
     let i = i + 1
@@ -233,15 +242,16 @@ function! s:GuessIndent()
 
   if ind[0] == 'tabs'
     setlocal noexpandtab
+    setlocal nolist
     let &l:shiftwidth = ind[1]
     let &l:tabstop = ind[1]
     let &l:softtabstop = ind[1]
   elseif ind[0]  == 'spaces'
     setlocal expandtab
+    setlocal list
     let &l:shiftwidth = ind[1]
     let &l:tabstop = ind[1]
     let &l:softtabstop = ind[1]
-    set list
   else
     "BUG: should not be here
   endif
