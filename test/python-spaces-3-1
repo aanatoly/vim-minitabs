@@ -1,0 +1,157 @@
+#!/usr/bin/python2
+
+'''Minify source code by removing all somments, blank lines and multiline strings
+'''
+
+prog_name = "src-minify"
+prog_version = "0.1"
+prog_epilog = '''
+Example:
+   %(prog)s --ft python test.py
+   cat test.py | %(prog)s --ft python
+'''
+
+############################################################
+# {{{ Misc
+
+############################################
+# Imports
+
+import logging
+import argparse
+import json
+import re
+import os
+import sys
+import subprocess as sp
+import shutil
+import textwrap
+import datetime
+import tempfile
+
+############################################
+# Logging
+
+try:
+   # Module logging_conf should intialize root logger and, perhaps some
+   # others, and assign 'log' variable to proper logger.
+   from logging_conf import log
+except:
+   log = logging.getLogger()
+   log.setLevel(logging.INFO)
+   # log.setLevel(logging.DEBUG)
+   h = logging.StreamHandler()
+   # f = MyFormatter()
+   f = logging.Formatter()
+   h.setFormatter(f)
+   log.addHandler(h)
+
+############################################
+# Argument parsing
+
+p = argparse.ArgumentParser(
+   prog=prog_name,
+   formatter_class=argparse.RawDescriptionHelpFormatter,
+   description=__doc__,
+   epilog=prog_epilog)
+p.add_argument("--debug", help="debug mode", dest='debug', action="store_true")
+p.add_argument("--version", action='version', version='%(prog)s ' + prog_version)
+p.add_argument("--ft", help="vim file type", required=True)
+p.add_argument("ifile", help="source file", nargs='?')
+
+args = p.parse_args()
+
+if args.debug or "DOK_DEBUG" in os.environ:
+   log.setLevel(logging.DEBUG)
+
+log.debug("Args: %s", json.dumps(vars(args), indent=4, sort_keys=True))
+
+
+# }}}
+############################################################
+
+############################################################
+# {{{ minifier
+
+ftmaps = {
+   # "python": [ "(?m)#.*$", "(?ms)'''.*?'''", '(?ms)""".*?"""' ]
+   "python": [ "(?ms)'''.*?'''", '(?ms)""".*?"""' ]
+}
+
+maxpos = 1000000
+
+num = 0
+def save_tmp(txt):
+   if not args.debug:
+      return
+   global num
+   if num == 0:
+      os.system("rm -f tst*")
+   open("tst%02d" % num, 'w').write(txt)
+   num += 1
+
+
+def minify(txt):
+   ftmap = ftmaps[args.ft]
+
+   save_tmp(txt)
+   while True:
+      pos = [maxpos] * len(ftmap)
+      for i, cre in enumerate(ftmap):
+         m = re.search(cre, txt)
+         if not m:
+            continue
+         pos[i] = m.start()
+      # log.debug("positions %s", pos)
+      mpos = min(pos)
+      if mpos == maxpos:
+         break
+      i = pos.index(mpos)
+      # log.debug("Remove '%s' at pos %d", ftmap[i], mpos)
+      txt2 = re.sub(ftmap[i], '', txt, count=1)
+      if txt == txt2:
+         log.debug("re.sub did not removed a thing\n----\n%s\n---", txt)
+         return txt
+
+      txt = txt2
+      save_tmp(txt)
+
+   return txt
+
+
+def find_indent(txt):
+   ind = 4
+   for m in re.finditer('(?m)(?P<indent>^[ \t]+)(?P<body>\S+.*$)', txt):
+      s = m.group('indent')
+      ind2 = len(s) - len(s.lstrip(' '))
+      if ind2 < ind and ind2 >= 2:
+         ind = ind2
+         log.debug("space <%s> body <%s>", s, m.group('body'))
+   log.debug("ind %d", ind)
+   return ind
+
+
+def main():
+   if args.ft not in ftmaps:
+      log.error("Unknown file type '%s'", args.ft)
+      log.error("Supported types are: %s", sorted(strmap.keys()))
+      exit(1)
+
+   if args.ifile:
+      args.ifile = open(args.ifile, 'r')
+   else:
+      args.ifile = sys.stdin
+   txt = args.ifile.read()
+   txt = minify(txt)
+   # log.debug("txt is \n%s", txt)
+   find_indent(txt)
+
+
+# }}}
+############################################################
+
+
+if __name__ == '__main__':
+   main()
+
+

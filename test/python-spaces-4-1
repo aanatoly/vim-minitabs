@@ -120,8 +120,7 @@ def minify(txt):
 
 
 def find_indent(txt):
-    maxlen = 100
-    ind = maxlen
+    ind = 4
     for m in re.finditer('(?m)(?P<indent>^[ \t]+)(?P<body>\S+.*$)', txt):
         s = m.group('indent')
         ind2 = len(s) - len(s.lstrip(' '))
@@ -129,10 +128,6 @@ def find_indent(txt):
             ind = ind2
             log.debug("space <%s> body <%s>", s, m.group('body'))
     log.debug("ind %d", ind)
-    if ind < maxlen:
-        print "set ts=%d | set et" % ind
-    else:
-        print "set noet"
     return ind
 
 
