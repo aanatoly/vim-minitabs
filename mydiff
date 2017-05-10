@@ -1,0 +1,9 @@
+#!/bin/bash
+
+src=tst00
+
+files=$(ls -1 tst* | sort)
+for f in $files; do
+	diffuse $src $f
+	src=$f
+done
