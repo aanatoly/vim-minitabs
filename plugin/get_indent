@@ -130,17 +130,18 @@ def find_indent(txt):
             log.debug("space <%s> body <%s>", s, m.group('body'))
     log.debug("ind %d", ind)
     if ind < maxlen:
-        rc = "set ts=%d | set sw=%d | set et" % (ind, ind)
+        rc = "set ts=%d | set sts=%d | set sw=%d | set et | set list" % (ind, ind, ind)
     else:
-        rc = "set noet"
+        rc = "set ts=4 | set sts=4 | set sw=4 | set noet | set nolist"
     return rc
 
 
 def main():
     if args.ft not in ftmaps:
-        log.error("Unknown file type '%s'", args.ft)
-        log.error("Supported types are: %s", sorted(strmap.keys()))
-        exit(0)
+        return
+        # log.error("Unknown file type '%s'", args.ft)
+        # log.error("Supported types are: %s", sorted(strmap.keys()))
+        # exit(0)
 
     if args.ifile:
         args.ifile = open(args.ifile, 'r')

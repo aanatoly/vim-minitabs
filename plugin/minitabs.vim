@@ -4,7 +4,7 @@
 " Licence:      GPLv2
 
 function! PrintIndent()
-  return "sw: " . &l:sw . " et:" . &l:et
+  return "sw:" . &l:sw . " et:" . &l:et
 endfunction
 
 
@@ -14,16 +14,16 @@ endif
 let g:loaded_minitabs = 100
 
 
-let g:get_indent = "./get_indent"
+let g:get_indent = fnamemodify(resolve(expand('<sfile>:p')), ':h') ."/get_indent"
 
-function! SetIndent()
+function! s:SetIndent()
   let src = join(getline(1, 100), "\n")
   let conf = system(g:get_indent . " --ft " . &filetype, src)
   execute conf
 endfunction
 
-" augroup minitabs
-"   autocmd!
-"   autocmd FileType * call s:SetIndent()
-" augroup END
+augroup minitabs
+  autocmd!
+  autocmd FileType * call s:SetIndent()
+augroup END
 
