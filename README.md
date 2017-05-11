@@ -4,7 +4,7 @@ Automatic indentation detection for vim (beta)
 ## Integration with vim-airline
 
 ```vim
-let g:airline_section_y = '%{GetTabStatus()}'
+let g:airline_section_y = '%{PrintIndent()}'
 ```
 
 ## Installation
