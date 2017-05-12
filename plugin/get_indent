@@ -56,7 +56,9 @@ p = argparse.ArgumentParser(
     epilog=prog_epilog)
 p.add_argument("--debug", help="debug mode", dest='debug', action="store_true")
 p.add_argument("--version", action='version', version='%(prog)s ' + prog_version)
-p.add_argument("--ft", help="vim file type", required=True)
+p.add_argument("--ft", help="vim file type")
+p.add_argument("--ft-list", help="list supported file types and exit", action="store_true")
+p.add_argument("--sw", help="shift width, indent", metavar="num", type=int, default=4)
 p.add_argument("ifile", help="source file", nargs='?')
 
 args = p.parse_args()
@@ -70,10 +72,9 @@ log.debug("Args: %s", json.dumps(vars(args), indent=4, sort_keys=True))
 ############################################################
 
 ############################################################
-# {{{ minifier
+# {{{ indent calculation
 
 ftmaps = {
-    # "python": [ "(?m)#.*$", "(?ms)'''.*?'''", '(?ms)""".*?"""' ]
     "python": [ "(?ms)'''.*?'''", '(?ms)""".*?"""' ],
     "c": [ "(?ms)/\*.*?\*/" ],
     "c++": [ "(?ms)/\*.*?\*/" ],
@@ -123,27 +124,38 @@ def minify(txt):
 
 def find_indent(txt):
     maxlen = 100
+    has_tabs = False
+    has_spaces = False
     ind = maxlen
     for m in re.finditer('(?m)(?P<indent>^[ \t]+)(?P<body>\S+.*$)', txt):
         s = m.group('indent')
-        ind2 = len(s) - len(s.lstrip(' '))
-        if ind2 < ind and ind2 >= 2:
-            ind = ind2
-            log.debug("space <%s> body <%s>", s, m.group('body'))
+        if s[:2] == '  ':
+            has_spaces = True
+            ind2 = len(s) - len(s.lstrip(' '))
+            if ind2 < ind:
+                ind = ind2
+        elif s[0] == '\t':
+            has_tabs = True
     log.debug("ind %d", ind)
-    if ind < maxlen:
-        rc = "set ts=%d | set sts=%d | set sw=%d | set et | set list" % (ind, ind, ind)
+    fmt = { "op" : "setlocal" }
+    if has_spaces and ind < maxlen:
+        fmt['ind'] = ind
+        rc = "%(op)s ts=%(ind)d | %(op)s sts=%(ind)d | %(op)s sw=%(ind)d | %(op)s et | %(op)s list" % fmt
+    elif has_tabs:
+        fmt['ind'] = args.sw
+        rc = "%(op)s ts=%(ind)d | %(op)s sts=%(ind)d | %(op)s sw=%(ind)d | %(op)s noet | %(op)s nolist" % fmt
     else:
-        rc = "set ts=4 | set sts=4 | set sw=4 | set noet | set nolist"
+        rc = ''
     return rc
 
 
 def main():
+    if args.ft_list:
+        log.info("Supported types are: %s", sorted(ftmaps.keys()))
+        exit(0)
+
     if args.ft not in ftmaps:
         return
-        # log.error("Unknown file type '%s'", args.ft)
-        # log.error("Supported types are: %s", sorted(strmap.keys()))
-        # exit(0)
 
     if args.ifile:
         args.ifile = open(args.ifile, 'r')
@@ -151,7 +163,6 @@ def main():
         args.ifile = sys.stdin
     txt = args.ifile.read()
     txt = minify(txt)
-    # log.debug("txt is \n%s", txt)
     ind = find_indent(txt)
     print ind
 
