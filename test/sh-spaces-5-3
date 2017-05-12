@@ -1,0 +1,12 @@
+#!/bin/sh
+
+cat <<-"EOF"
+  got tab at the left
+  got tab at the left
+  got tab at the left
+  got tab at the left
+EOF
+
+if true; then
+     echo fff
+fi
