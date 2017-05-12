@@ -1,0 +1,10 @@
+#!/bin/bash
+
+echo "ffff
+	444
+		55555"
+
+
+if true; then
+    echo smth
+fi
