@@ -1,9 +1,9 @@
 #!/usr/bin/python2
 
-'''Minify source code by removing all somments, blank lines and multiline strings
+'''Guess source code indent style
 '''
 
-prog_name = "src-minify"
+prog_name = "get-indent"
 prog_version = "0.1"
 prog_epilog = '''
 Example:
@@ -66,7 +66,6 @@ if args.debug or "DOK_DEBUG" in os.environ:
 
 log.debug("Args: %s", json.dumps(vars(args), indent=4, sort_keys=True))
 
-
 # }}}
 ############################################################
 
@@ -75,7 +74,10 @@ log.debug("Args: %s", json.dumps(vars(args), indent=4, sort_keys=True))
 
 ftmaps = {
     # "python": [ "(?m)#.*$", "(?ms)'''.*?'''", '(?ms)""".*?"""' ]
-    "python": [ "(?ms)'''.*?'''", '(?ms)""".*?"""' ]
+    "python": [ "(?ms)'''.*?'''", '(?ms)""".*?"""' ],
+    "c": [ "(?ms)/\*.*?\*/" ],
+    "c++": [ "(?ms)/\*.*?\*/" ],
+    "java": [ "(?ms)/\*.*?\*/" ],
 }
 
 maxpos = 1000000
