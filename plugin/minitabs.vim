@@ -3,20 +3,35 @@
 " Maintainer:   Anatoly Asviyan <aanatoly@gmail.com>
 " Licence:      GPLv2
 
-function! PrintIndent()
-  return "sw:" . &l:sw . " et:" . &l:et
-endfunction
-
+if !has('python')
+	finish
+endif
 
 if exists("g:loaded_minitabs") || &cp || &modifiable == 0
   finish
 endif
 let g:loaded_minitabs = 100
 
+let s:main_py = resolve(expand('<sfile>:p:h')) ."/main.py"
+execute 'pyfile ' . s:main_py
 
-let g:get_indent = fnamemodify(resolve(expand('<sfile>:p')), ':h') ."/get_indent"
+function! IndentSet(fill, ind)
+  if a:fill == "tab"
+    setlocal noet nolist
+  elseif a:fill == "space"
+    setlocal et list
+  endif
+  let &l:ts=a:ind
+  let &l:sts=a:ind
+  let &l:sw=a:ind
+endfunction
 
-function! s:SetIndent()
+function! IndentPrint()
+  return "sw:" . &l:sw . " et:" . &l:et
+endfunction
+
+function! s:IndentGuess()
+  return
   let src = join(getline(1, 100), "\n")
   let conf = system(g:get_indent . " --ft " . &filetype, src)
   execute conf
@@ -24,6 +39,11 @@ endfunction
 
 augroup minitabs
   autocmd!
-  autocmd FileType * call s:SetIndent()
+  autocmd FileType * call s:IndentGuess()
 augroup END
+
+" FIXME: remove
+function! PrintIndent()
+  return "sw:" . &l:sw . " et:" . &l:et
+endfunction
 
