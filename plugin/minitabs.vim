@@ -4,7 +4,7 @@
 " Licence:      GPLv2
 
 if !has('python')
-	finish
+  finish
 endif
 
 if exists("g:loaded_minitabs") || &cp || &modifiable == 0
@@ -12,10 +12,22 @@ if exists("g:loaded_minitabs") || &cp || &modifiable == 0
 endif
 let g:loaded_minitabs = 100
 
+let g:minitabs_fill = 'space'
+let b:minitabs_indent = 4
+
+if !exists("g:minitabs_fill")
+  let b:minitabs_fill = 'space'
+endif
+if !exists("g:minitabs_indent")
+  let g:minitabs_indent = 4
+endif
+
 let s:main_py = resolve(expand('<sfile>:p:h')) ."/main.py"
 execute 'pyfile ' . s:main_py
 
 function! IndentSet(fill, ind)
+  let b:minitabs_fill = a:fill
+  let b:minitabs_indent = a:ind
   if a:fill == "tab"
     setlocal noet nolist
   elseif a:fill == "space"
@@ -27,23 +39,21 @@ function! IndentSet(fill, ind)
 endfunction
 
 function! IndentPrint()
-  return "sw:" . &l:sw . " et:" . &l:et
+  return b:minitabs_fill . ":" . b:minitabs_indent
 endfunction
 
 function! s:IndentGuess()
-  return
-  let src = join(getline(1, 100), "\n")
-  let conf = system(g:get_indent . " --ft " . &filetype, src)
-  execute conf
+  py indent_guess()
 endfunction
 
 augroup minitabs
   autocmd!
   autocmd FileType * call s:IndentGuess()
+  autocmd BufNewFile * call IndentSet(g:minitabs_fill, g:minitabs_indent)
 augroup END
 
 " FIXME: remove
 function! PrintIndent()
-  return "sw:" . &l:sw . " et:" . &l:et
+  return IndentPrint()
 endfunction
 

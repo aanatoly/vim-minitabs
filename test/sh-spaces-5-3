@@ -10,3 +10,8 @@ EOF
 if true; then
      echo fff
 fi
+
+if true; then
+	echo fff
+fi
+
