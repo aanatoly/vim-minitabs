@@ -1,10 +1,12 @@
 import vim
 import sys
 
+MAX_LINES = 120
+
 def dbg(ln, sid, txt):
     sys.stdout.write("line %d, sid %s : %s\n" % (ln, sid, txt))
 
-def indent_guess_real(char, ind):
+def indent_guess_real(fill, ind):
     hg_names = ['Comment', 'Constant']
     hg_ids = []
     for n in hg_names:
@@ -28,7 +30,7 @@ def indent_guess_real(char, ind):
             return 'skip', 'not a space'
         return 'space', 2
 
-    for i in range(1, min(blen, 120)):
+    for i in range(1, min(blen, MAX_LINES)):
         line = buf[i - 1]
         sid = vim.eval("synIDtrans(synID(%d, 1, 1))" % i)
         info = get_line_indent(sid, line)
@@ -49,12 +51,19 @@ def indent_guess_real(char, ind):
 
     if inds:
         ind = min(inds)
-        char = 'space'
+        fill = 'space'
 
-    return char, ind
+    return fill, ind
 
 
 def indent_guess():
-    char, ind = indent_guess_real('space', 4)
-    vim.eval("IndentSet('%s',%d)" % (char, ind))
+    fill = vim.eval('g:minitabs_fill')
+    ind = int(vim.eval('g:minitabs_indent'))
+    ft = vim.eval('&filetype')
+
+    if ft == 'make':
+        fill = 'tab'
+    else:
+        fill, ind = indent_guess_real(fill, ind)
+    vim.eval("IndentSet('%s', %d)" % (fill, ind))
 

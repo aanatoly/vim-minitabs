@@ -12,11 +12,11 @@ if exists("g:loaded_minitabs") || &cp || &modifiable == 0
 endif
 let g:loaded_minitabs = 100
 
-let g:minitabs_fill = 'space'
+let b:minitabs_fill = 'space'
 let b:minitabs_indent = 4
 
 if !exists("g:minitabs_fill")
-  let b:minitabs_fill = 'space'
+  let g:minitabs_fill = 'space'
 endif
 if !exists("g:minitabs_indent")
   let g:minitabs_indent = 4
@@ -49,7 +49,7 @@ endfunction
 augroup minitabs
   autocmd!
   autocmd FileType * call s:IndentGuess()
-  autocmd BufNewFile * call IndentSet(g:minitabs_fill, g:minitabs_indent)
+  autocmd BufNewFile * call s:IndentGuess()
 augroup END
 
 " FIXME: remove
