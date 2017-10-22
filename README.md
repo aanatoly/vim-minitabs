@@ -33,4 +33,5 @@ let g:minitabs_indent = 4
 ```vim
 let g:airline_section_y = '%{IndentPrint()}'
 ```
+![shot](doc/shot-01.png)
 
