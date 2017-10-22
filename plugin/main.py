@@ -63,7 +63,7 @@ def indent_guess():
 
     if ft == 'make':
         fill = 'tab'
-    elif len(vim.current.buffer):
+    elif ft and len(vim.current.buffer):
         fill, ind = indent_guess_real(fill, ind)
     vim.eval("IndentSet('%s', %d)" % (fill, ind))
 
