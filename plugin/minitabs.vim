@@ -12,9 +12,6 @@ if exists("g:loaded_minitabs") || &cp || &modifiable == 0
 endif
 let g:loaded_minitabs = 100
 
-let b:minitabs_fill = 'space'
-let b:minitabs_indent = 4
-
 if !exists("g:minitabs_fill")
   let g:minitabs_fill = 'space'
 endif
@@ -39,6 +36,12 @@ function! IndentSet(fill, ind)
 endfunction
 
 function! IndentPrint()
+  if !exists("b:minitabs_fill")
+    let b:minitabs_fill = g:minitabs_fill
+  endif
+  if !exists("b:minitabs_indent")
+    let b:minitabs_indent = g:minitabs_indent
+  endif
   return b:minitabs_fill . ":" . b:minitabs_indent
 endfunction
 
@@ -56,4 +59,3 @@ augroup END
 function! PrintIndent()
   return IndentPrint()
 endfunction
-

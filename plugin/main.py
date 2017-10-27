@@ -59,6 +59,7 @@ def indent_guess_real(fill, ind):
 def indent_guess():
     fill = vim.eval('g:minitabs_fill')
     ind = int(vim.eval('g:minitabs_indent'))
+    vim.eval("IndentSet('%s', %d)" % (fill, ind))
     ft = vim.eval('&filetype')
 
     if ft == 'make':
@@ -66,4 +67,3 @@ def indent_guess():
     elif ft and len(vim.current.buffer):
         fill, ind = indent_guess_real(fill, ind)
     vim.eval("IndentSet('%s', %d)" % (fill, ind))
-
