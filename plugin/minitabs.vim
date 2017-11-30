@@ -3,14 +3,27 @@
 " Maintainer:   Anatoly Asviyan <aanatoly@gmail.com>
 " Licence:      GPLv2
 
-if !has('python')
-  finish
-endif
+function! IndentPrint()
+	return &l:sw . ":" . (&l:et ? "space" : "tab")
+endfunction
 
 if exists("g:loaded_minitabs") || &cp || &modifiable == 0
   finish
 endif
-let g:loaded_minitabs = 100
+let g:loaded_minitabs = 1
+
+if has("python3")
+	let s:pyfile = "py3file "
+	let s:py = "py3 "
+elseif has("python")
+	let s:pyfile = "pyfile "
+	let s:py = "py "
+else
+	echohl Error
+	echo "Error: minitabs requires vim compiled with +python or +python3"
+	echohl None
+	finish
+endif
 
 if !exists("g:minitabs_fill")
   let g:minitabs_fill = 'space'
@@ -20,11 +33,9 @@ if !exists("g:minitabs_indent")
 endif
 
 let s:main_py = resolve(expand('<sfile>:p:h')) ."/main.py"
-execute 'pyfile ' . s:main_py
+execute s:pyfile . s:main_py
 
 function! IndentSet(fill, ind)
-  let b:minitabs_fill = a:fill
-  let b:minitabs_indent = a:ind
   if a:fill == "tab"
     setlocal noet nolist
   elseif a:fill == "space"
@@ -35,18 +46,8 @@ function! IndentSet(fill, ind)
   let &l:sw=a:ind
 endfunction
 
-function! IndentPrint()
-  if !exists("b:minitabs_fill")
-    let b:minitabs_fill = g:minitabs_fill
-  endif
-  if !exists("b:minitabs_indent")
-    let b:minitabs_indent = g:minitabs_indent
-  endif
-  return b:minitabs_fill . ":" . b:minitabs_indent
-endfunction
-
 function! s:IndentGuess()
-  py indent_guess()
+  exec s:py 'indent_guess()'
 endfunction
 
 augroup minitabs
@@ -54,8 +55,3 @@ augroup minitabs
   autocmd FileType * call s:IndentGuess()
   autocmd BufNewFile * call s:IndentGuess()
 augroup END
-
-" FIXME: remove
-function! PrintIndent()
-  return IndentPrint()
-endfunction
